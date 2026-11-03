@@ -11,10 +11,28 @@ jobs:
   keepalive:
     runs-on: ubuntu-latest
     steps:
-      - name: Keepalive Action
-        uses: gautamkrishnar/keepalive-workflow@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          days_before: 45
-          commit_message: "chore: auto keepalive"
-          use_api: false
-          target_branch: master  # ✅ 重点！指定你的分支 master
+          ref: master
+          fetch-depth: 0
+
+      - name: Check last commit days
+        id: check_time
+        run: |
+          LAST_COMMIT=$(git log -1 --format=%ct)
+          NOW=$(date +%s)
+          DIFF=$(( (NOW - LAST_COMMIT) / 86400 ))
+          echo "days=$DIFF" >> $GITHUB_OUTPUT
+          echo "Last commit: $DIFF days ago"
+
+      - name: Refresh commit (≥45天执行)
+        if: ${{ steps.check_time.outputs.days >= 45 }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # 在README末尾追加一个空格+换行
+          echo " " >> README.md
+          git add README.md
+          git commit -m "chore: auto keepalive refresh"
+          git push origin master
