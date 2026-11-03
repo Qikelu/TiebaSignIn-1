@@ -1,1 +1,16 @@
+name: Auto Keepalive
+on:
+  schedule:
+    - cron: '0 0 * * *' # UTC 每天0点检查，只是检查，不会天天提交
+  workflow_dispatch: # 支持手动点一下触发
 
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keepalive Action
+        uses: gautamkrishnar/keepalive-workflow@v2
+        with:
+          days_before: 45
+          commit_message: "chore: auto keepalive"
+          use_api: false
